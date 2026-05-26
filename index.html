@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍺 Browar? 🍺</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Cormorant Garamond', serif;
+    background: linear-gradient(135deg, #f4d35e 0%, #ee9b00 45%, #bb6b00 100%);
+    color: #3d2914;
+    position: relative;
+  }
+
+  .heart-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .heart-bg span {
+    position: absolute;
+    font-size: 22px;
+    opacity: 0.45;
+    animation: float linear infinite;
+  }
+  @keyframes float {
+    0%   { transform: translateY(110vh) rotate(0deg);   opacity: 0; }
+    10%  { opacity: 0.55; }
+    90%  { opacity: 0.55; }
+    100% { transform: translateY(-15vh) rotate(360deg); opacity: 0; }
+  }
+
+  .lang-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+    animation: fadeIn 0.8s ease;
+  }
+  .lang-screen.hidden {
+    animation: fadeOut 0.5s ease forwards;
+    pointer-events: none;
+  }
+  @keyframes fadeOut {
+    to { opacity: 0; transform: scale(1.05); }
+  }
+
+  .lang-title {
+    font-size: clamp(1.6rem, 4vw, 2.5rem);
+    font-style: italic;
+    font-weight: 600;
+    margin-bottom: 50px;
+    line-height: 1.6;
+    text-shadow: 0 2px 15px rgba(255,255,255,0.3);
+  }
+  .lang-title span { display: block; opacity: 0.9; }
+  .lang-title span + span {
+    margin-top: 8px;
+    font-size: 0.85em;
+    opacity: 0.75;
+  }
+
+  .lang-flags {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .lang-flag {
+    cursor: pointer;
+    background: rgba(255, 248, 220, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    padding: 25px 35px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 25px rgba(100, 50, 0, 0.2);
+    user-select: none;
+    border: 2px solid transparent;
+  }
+  .lang-flag:hover {
+    transform: translateY(-6px) scale(1.05);
+    box-shadow: 0 14px 35px rgba(140, 70, 0, 0.35);
+    border-color: rgba(140, 70, 0, 0.4);
+  }
+  .lang-flag .emoji { font-size: 60px; line-height: 1; }
+  .lang-flag .label {
+    font-family: 'Caveat', cursive;
+    font-size: 1.4rem;
+    color: #3d2914;
+    font-weight: 700;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+  }
+  .container.show {
+    display: flex;
+    animation: fadeIn 0.8s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .flags-mini {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 5;
+    background: rgba(255, 248, 220, 0.5);
+    backdrop-filter: blur(10px);
+    padding: 8px 14px;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(100, 50, 0, 0.15);
+  }
+  .flag-mini {
+    font-size: 22px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+  .flag-mini:hover { transform: scale(1.2); opacity: 1; }
+  .flag-mini.active { opacity: 1; transform: scale(1.15); }
+
+  .name-label {
+    font-family: 'Caveat', cursive;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    color: #8b3a00;
+    margin-bottom: 10px;
+    font-weight: 700;
+    text-shadow: 0 2px 10px rgba(255,255,255,0.5);
+  }
+
+  .question {
+    font-size: clamp(1.8rem, 5.5vw, 4rem);
+    font-weight: 600;
+    font-style: italic;
+    line-height: 1.2;
+    margin-bottom: 60px;
+    max-width: 900px;
+    text-shadow: 0 2px 20px rgba(255,255,255,0.3);
+  }
+
+  .buttons {
+    position: relative;
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    min-height: 80px;
+  }
+  .btn {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    padding: 18px 55px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    box-shadow: 0 8px 24px rgba(100, 50, 0, 0.3);
+    letter-spacing: 1px;
+  }
+  .btn-yes {
+    background: linear-gradient(135deg, #d97706, #92400e);
+    color: #fff8dc;
+  }
+  .btn-yes:hover {
+    transform: scale(1.08) translateY(-3px);
+    box-shadow: 0 12px 30px rgba(146, 64, 14, 0.5);
+  }
+  .btn-no {
+    background: rgba(255, 248, 220, 0.8);
+    color: #3d2914;
+    transition: top 0.2s ease, left 0.2s ease, transform 0.2s ease;
+  }
+
+  .result {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #fde68a 0%, #ee9b00 100%);
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 30px;
+    text-align: center;
+    animation: zoomIn 0.6s ease;
+  }
+  .result.show { display: flex; }
+  @keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .result h1 {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 600;
+    font-style: italic;
+    margin-bottom: 20px;
+    color: #8b3a00;
+  }
+  .result .karolina {
+    font-family: 'Caveat', cursive;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    color: #8b3a00;
+    margin-bottom: 15px;
+    font-weight: 700;
+  }
+  .result p {
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    margin-bottom: 15px;
+    max-width: 700px;
+  }
+  .ss-info {
+    margin-top: 30px;
+    padding: 20px 35px;
+    background: rgba(255, 248, 220, 0.75);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 2px dashed #8b3a00;
+    font-family: 'Caveat', cursive;
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    color: #3d2914;
+    box-shadow: 0 8px 25px rgba(100, 50, 0, 0.25);
+  }
+  .ss-info strong {
+    color: #8b3a00;
+    font-weight: 700;
+    font-size: 1.2em;
+  }
+  .big-heart {
+    font-size: clamp(4rem, 12vw, 7rem);
+    animation: beat 1.2s ease infinite;
+    margin: 20px 0;
+  }
+  @keyframes beat {
+    0%, 100% { transform: scale(1) rotate(-5deg); }
+    50%      { transform: scale(1.1) rotate(5deg); }
+  }
+
+  .watermark {
+    position: fixed;
+    bottom: 15px;
+    right: 20px;
+    font-family: 'Caveat', cursive;
+    font-size: 1.1rem;
+    color: rgba(61, 41, 20, 0.65);
+    z-index: 6;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  @media (max-width: 600px) {
+    .buttons { gap: 20px; }
+    .btn { font-size: 1.4rem; padding: 14px 35px; }
+    .lang-flag { padding: 18px 22px; }
+    .lang-flag .emoji { font-size: 48px; }
+    .lang-flags { gap: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="heart-bg" id="heartBg"></div>
+
+<div class="lang-screen" id="langScreen">
+  <div class="lang-title">
+    <span>Wybierz język 🍺</span>
+    <span>Choose your language · Elige tu idioma</span>
+  </div>
+  <div class="lang-flags">
+    <div class="lang-flag" data-lang="pl">
+      <div class="emoji">🇵🇱</div>
+      <div class="label">Polski</div>
+    </div>
+    <div class="lang-flag" data-lang="en">
+      <div class="emoji">🇬🇧</div>
+      <div class="label">English</div>
+    </div>
+    <div class="lang-flag" data-lang="es">
+      <div class="emoji">🇪🇸</div>
+      <div class="label">Español</div>
+    </div>
+  </div>
+</div>
+
+<div class="flags-mini" id="flagsMini" style="display:none;">
+  <span class="flag-mini" data-lang="pl">🇵🇱</span>
+  <span class="flag-mini" data-lang="en">🇬🇧</span>
+  <span class="flag-mini" data-lang="es">🇪🇸</span>
+</div>
+
+<div class="container" id="mainScreen">
+  <h1 class="question" id="question">Czy wychodzisz na browara? 🍺</h1>
+  <div class="buttons">
+    <button class="btn btn-yes" id="btnYes">TAK</button>
+    <button class="btn btn-no" id="btnNo">NIE</button>
+  </div>
+</div>
+
+<div class="result" id="resultScreen">
+  <div class="big-heart">🏆</div>
+  <h1 id="resultTitle">GRATULACJE! 🎉</h1>
+  <p id="resultText" style="font-size: clamp(1.4rem, 4vw, 2.2rem); font-weight: 600; max-width: 800px;">Wygrałaś darmowe wyjście na browara 🍺</p>
+  <div class="ss-info">
+    <span id="ssText">Wyślij screena na</span> <strong>karp.4</strong> <span id="ssText2">żeby odebrać nagrodę</span>
+  </div>
+</div>
+
+<div class="watermark">created by karp 🍺</div>
+
+<script>
+  const translations = {
+    pl: {
+      question: "Czy wychodzisz na browara? 🍺",
+      yes: "TAK",
+      no: "NIE",
+      resultTitle: "GRATULACJE! 🎉",
+      resultText: "Wygrałaś darmowe wyjście na browara 🍺",
+      ssText: "Wyślij screena na",
+      ssText2: "żeby odebrać nagrodę"
+    },
+    en: {
+      question: "Wanna grab a beer? 🍺",
+      yes: "YES",
+      no: "NO",
+      resultTitle: "CONGRATULATIONS! 🎉",
+      resultText: "You won a free beer outing 🍺",
+      ssText: "Send a screenshot to",
+      ssText2: "to claim your prize"
+    },
+    es: {
+      question: "¿Vamos por una cerveza? 🍺",
+      yes: "SÍ",
+      no: "NO",
+      resultTitle: "¡FELICIDADES! 🎉",
+      resultText: "Ganaste una salida gratis por cerveza 🍺",
+      ssText: "Envía una captura a",
+      ssText2: "para reclamar tu premio"
+    }
+  };
+
+  function setLanguage(lang) {
+    const t = translations[lang];
+    document.getElementById('question').textContent = t.question;
+    document.getElementById('btnYes').textContent = t.yes;
+    document.getElementById('btnNo').textContent = t.no;
+    document.getElementById('resultTitle').textContent = t.resultTitle;
+    document.getElementById('resultText').textContent = t.resultText;
+    document.getElementById('ssText').textContent = t.ssText;
+    document.getElementById('ssText2').textContent = t.ssText2;
+    document.querySelectorAll('.flag-mini').forEach(f => {
+      f.classList.toggle('active', f.dataset.lang === lang);
+    });
+  }
+
+  document.querySelectorAll('.lang-flag').forEach(flag => {
+    flag.addEventListener('click', () => {
+      const lang = flag.dataset.lang;
+      setLanguage(lang);
+      document.getElementById('langScreen').classList.add('hidden');
+      setTimeout(() => {
+        document.getElementById('langScreen').style.display = 'none';
+        document.getElementById('mainScreen').classList.add('show');
+        document.getElementById('flagsMini').style.display = 'flex';
+      }, 500);
+    });
+  });
+
+  document.querySelectorAll('.flag-mini').forEach(flag => {
+    flag.addEventListener('click', () => setLanguage(flag.dataset.lang));
+  });
+
+  const btnNo = document.getElementById('btnNo');
+
+  function escapeNo() {
+    btnNo.style.position = 'fixed';
+    btnNo.style.left = (Math.random() * (window.innerWidth - 150)) + 'px';
+    btnNo.style.top  = (Math.random() * (window.innerHeight - 100)) + 'px';
+    btnNo.style.transform = `rotate(${(Math.random() * 30 - 15)}deg)`;
+  }
+
+  btnNo.addEventListener('mouseover', escapeNo);
+  btnNo.addEventListener('touchstart', (e) => { e.preventDefault(); escapeNo(); });
+  btnNo.addEventListener('focus', escapeNo);
+  btnNo.addEventListener('click', (e) => { e.preventDefault(); escapeNo(); });
+
+  document.getElementById('btnYes').addEventListener('click', () => {
+    document.getElementById('mainScreen').classList.remove('show');
+    document.getElementById('mainScreen').style.display = 'none';
+    document.getElementById('flagsMini').style.display = 'none';
+    document.getElementById('resultScreen').classList.add('show');
+    spawnBeers(30);
+  });
+
+  const heartBg = document.getElementById('heartBg');
+  const beerEmojis = ['🍺', '🍻', '🍺', '🍻', '🥨'];
+
+  function spawnBeers(count = 25) {
+    for (let i = 0; i < count; i++) {
+      const h = document.createElement('span');
+      h.textContent = beerEmojis[Math.floor(Math.random() * beerEmojis.length)];
+      h.style.left = Math.random() * 100 + 'vw';
+      h.style.animationDuration = (6 + Math.random() * 10) + 's';
+      h.style.animationDelay = Math.random() * 8 + 's';
+      h.style.fontSize = (16 + Math.random() * 20) + 'px';
+      heartBg.appendChild(h);
+    }
+  }
+  spawnBeers(25);
+</script>
+
+</body>
+</html>
